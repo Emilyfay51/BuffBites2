@@ -9,25 +9,33 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 import com.example.buffbites.R
+import com.example.buffbites.cancelOrderAndNavigateToStart
 import com.example.buffbites.data.Datasource
+import com.example.buffbites.shareOrder
 import com.example.buffbites.ui.theme.BuffBitesTheme
 import java.text.NumberFormat
+
 
 @Composable
 fun OrderSummaryScreen(
     orderUiState: OrderUiState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCancelButtonClicked: () -> Unit,
+    onSendButtonClicked: (String, String) -> Unit
 ) {
     // Format all prices into strings with dollar sign and 2 decimal places (e.g. $4.99)
     val formattedSubTotal = NumberFormat.getCurrencyInstance().format(orderUiState.orderSubtotal)
@@ -35,9 +43,9 @@ fun OrderSummaryScreen(
     val formattedTotal = NumberFormat.getCurrencyInstance().format(orderUiState.orderTotalPrice)
 
     // Extract vendor name from orderUiState or use an empty string if null
-    val vendorName = orderUiState.selectedVendor?.name?.let { stringResource(it) } ?: ""
+    val vendorName = orderUiState.selectedVendor?.name ?: ""
 
-    // Order Subject and Summary text to send to another app for extra credit
+// Order Subject and Summary text to send to another app for extra credit
     val orderSubject = stringResource(R.string.new_buffbites_order)
     val orderSummary = stringResource(
         R.string.order_details,
@@ -66,9 +74,9 @@ fun OrderSummaryScreen(
         Text(
             text = stringResource(R.string.delivery_time, orderUiState.selectedDeliveryTime)
         )
-        Divider(
-            thickness = 1.dp,
-            modifier = Modifier.padding(bottom = 8.dp)
+        HorizontalDivider(
+            modifier = Modifier.padding(bottom = 8.dp),
+            thickness = 1.dp
         )
         Text(
             text = stringResource(R.string.subtotal, formattedSubTotal),
@@ -96,13 +104,13 @@ fun OrderSummaryScreen(
         ) {
             OutlinedButton(
                 modifier = Modifier.weight(1f),
-                onClick = { /* TODO */ }
+                onClick = onCancelButtonClicked
             ) {
                 Text(stringResource(R.string.cancel))
             }
             Button(
                 modifier = Modifier.weight(1f),
-                onClick = { /* TODO */ }
+                onClick = { onSendButtonClicked(orderSubject, orderSummary) }
             ) {
                 Text(stringResource(R.string.submit))
             }
@@ -114,6 +122,10 @@ fun OrderSummaryScreen(
 @Composable
 fun OrderSummaryScreenPreview() {
     BuffBitesTheme {
+        val context = LocalContext.current
+        val navController = rememberNavController()
+        val viewModel: OrderViewModel<Any?> = viewModel()
+
         OrderSummaryScreen(
             orderUiState = OrderUiState(
                 selectedVendor = Datasource.restaurants[0],
@@ -126,7 +138,17 @@ fun OrderSummaryScreenPreview() {
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            onCancelButtonClicked = {
+                cancelOrderAndNavigateToStart(viewModel, navController)
+            },
+
+            onSendButtonClicked = { subject: String, summary: String ->
+                shareOrder(context, subject = subject, summary = summary)
+            },
         )
     }
 }
+
+
+

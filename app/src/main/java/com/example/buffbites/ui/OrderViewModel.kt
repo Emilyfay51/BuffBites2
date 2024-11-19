@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class OrderViewModel : ViewModel() {
+class OrderViewModel<NavBackStackEntry> : ViewModel() {
 
     private val taxRate = 0.08
 
@@ -61,5 +61,9 @@ class OrderViewModel : ViewModel() {
         }
 
         return deliveryOptions
+    }
+
+    fun setRestaurant(it: NavBackStackEntry) {
+
     }
 }

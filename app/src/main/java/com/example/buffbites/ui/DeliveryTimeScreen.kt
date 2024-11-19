@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
+import com.example.buffbites.BuffBitesScreen
 import com.example.buffbites.R
 import com.example.buffbites.ui.theme.BuffBitesTheme
 import java.text.NumberFormat
@@ -32,7 +34,9 @@ fun ChooseDeliveryTimeScreen(
     subtotal: Double,
     options: List<String>,
     onSelectionChanged: (String) -> Unit = {},
-    modifier: Modifier = Modifier
+    onCancelButtonClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+    onNextButtonClicked: () -> Unit
 ) {
     var selectedValue by rememberSaveable { mutableStateOf("") }
 
@@ -87,15 +91,15 @@ fun ChooseDeliveryTimeScreen(
         ) {
             OutlinedButton(
                 modifier = Modifier.weight(1f),
-                onClick = { /* TODO */ }
+                onClick = onCancelButtonClicked
             ) {
                 Text(stringResource(R.string.cancel))
             }
             Button(
                 modifier = Modifier.weight(1f),
-                // the button is enabed when the user makes a selection
+                // the button is enabled when the user makes a selection
                 enabled = selectedValue.isNotEmpty(),
-                onClick = { /* TODO */ }
+                onClick = onNextButtonClicked
             ) {
                 Text(stringResource(R.string.next))
             }
@@ -107,6 +111,7 @@ fun ChooseDeliveryTimeScreen(
 @Composable
 fun ChooseDeliveryTimePreview() {
     BuffBitesTheme {
+        val navController = rememberNavController()
         ChooseDeliveryTimeScreen(
             subtotal = 299.99,
             options = listOf(
@@ -115,9 +120,11 @@ fun ChooseDeliveryTimePreview() {
                 "Mon Sep 18 8:00 PM",
                 "Mon Sep 18 9:00 PM"
             ),
+            onCancelButtonClicked = {},
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(16.dp)
+                .padding(16.dp),
+            onNextButtonClicked = { navController.navigate(BuffBitesScreen.Summary.name) }
         )
     }
 }

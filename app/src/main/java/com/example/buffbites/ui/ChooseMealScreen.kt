@@ -10,12 +10,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,7 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
+import com.example.buffbites.BuffBitesScreen
 import com.example.buffbites.R
+import com.example.buffbites.cancelOrderAndNavigateToStart
 import com.example.buffbites.data.Datasource
 import com.example.buffbites.model.MenuItem
 import com.example.buffbites.ui.theme.BuffBitesTheme
@@ -36,6 +41,8 @@ fun ChooseMenuScreen(
     options: List<MenuItem>,
     onSelectionChanged: (MenuItem) -> Unit,
     modifier: Modifier = Modifier,
+    onNextButtonClicked: () -> Unit,
+    onCancelButtonClicked: () -> Unit,
 ) {
     var selectedItemName by rememberSaveable { mutableStateOf("") }
 
@@ -60,8 +67,8 @@ fun ChooseMenuScreen(
         Spacer(modifier = Modifier.weight(1f))
         MenuScreenButtonGroup(
             selectedItemName = selectedItemName,
-            onCancelButtonClicked = { /* TODO */ },
-            onNextButtonClicked = { /* TODO */ },
+            onCancelButtonClicked = onCancelButtonClicked,
+            onNextButtonClicked = onNextButtonClicked,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -74,6 +81,7 @@ fun MenuItemRow(
     item: MenuItem,
     selectedItemName: String,
     onClick: () -> Unit,
+
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -99,9 +107,9 @@ fun MenuItemRow(
                 text = NumberFormat.getCurrencyInstance().format(item.price),
                 style = MaterialTheme.typography.bodyMedium
             )
-            Divider(
-                thickness = 1.dp,
-                modifier = Modifier.padding(bottom = 16.dp)
+            HorizontalDivider(
+                modifier = Modifier.padding(bottom = 16.dp),
+                thickness = 1.dp
             )
         }
     }
@@ -136,13 +144,21 @@ fun MenuScreenButtonGroup(
 @Preview
 @Composable
 fun MenuScreenPreview() {
+    val navController = rememberNavController()
+    val viewModel: OrderViewModel<Any?> = viewModel()
+    val uiState by viewModel.uiState.collectAsState()
+
     BuffBitesTheme {
         ChooseMenuScreen(
             options = Datasource.restaurants[0].menuItems,
             onSelectionChanged = {},
             modifier = Modifier
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            onNextButtonClicked = { navController.navigate(BuffBitesScreen.Delivery.name) },
+            onCancelButtonClicked = {
+                cancelOrderAndNavigateToStart(viewModel, navController)
+            }
         )
     }
 }
